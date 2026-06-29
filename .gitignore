@@ -12,3 +12,4 @@ wheels/
 .chromadb_test
 sessions
 logs
+.agent

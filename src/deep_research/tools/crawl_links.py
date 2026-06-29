@@ -83,6 +83,6 @@ def crawl_links(seed_urls: List[str], max_depth: int = 2, max_pages: int = 20) -
 
 crawl_links_tool = FunctionTool(
     func=crawl_links,
-    description="Recursively crawl from seed URLs up to a specified depth. Extracts page title and content from each page. Stays within same domain.",
+    description="Recursively crawl from seed URLs. Args: seed_urls (list of URLs), max_depth (crawl depth, default 2), max_pages (max pages to visit, default 20). Extracts page title and content from each page. Stays within same domain.",
     global_imports=["httpx", "bs4", "urllib.parse"],
 )

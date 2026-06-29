@@ -3,7 +3,7 @@ from autogen_core.models import ModelInfo
 from autogen_ext.models.ollama import OllamaChatCompletionClient
 
 from ..config import LLM_CONFIG
-from ..memory import ResearchMemoryStore
+from ..tools.memory_tools import store_finding_tool, search_memory_tool
 
 
 def create_memory_manager(model_client=None):
@@ -22,12 +22,12 @@ def create_memory_manager(model_client=None):
     return AssistantAgent(
         name="ResearchMemory",
         model_client=model_client,
-        tools=[],
+        tools=[store_finding_tool, search_memory_tool],
         system_message=(
             "You are the research memory manager. "
             "Your responsibilities:\n"
-            "1. Store research findings in persistent memory for later retrieval\n"
-            "2. Retrieve findings by topic to support ongoing research\n"
+            "1. Store research findings in persistent memory for later retrieval using store_finding\n"
+            "2. Retrieve findings by topic to support ongoing research using search_memory\n"
             "3. List all stored findings on request\n"
             "4. Maintain a structured knowledge base of all discovered information"
         ),
