@@ -1,0 +1,37 @@
+# {{ query }}
+
+## Executive Summary
+
+{{ executive_summary }}
+
+## Findings
+
+{% for finding in findings %}
+### {{ finding.claim }}
+
+{{ finding.evidence }}
+
+{% if finding.citations %}
+#### Sources
+{% for citation in finding.citations %}
+- [{{ citation.title }}]({{ citation.source_url }})
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+{% if conclusion %}
+## Conclusion
+
+{{ conclusion }}
+{% endif %}
+
+{% if citations %}
+## References
+
+{% for citation in citations %}
+- {{ citation }}
+{% endfor %}
+{% endif %}
+
+---
+*Generated on {{ generated_at }}*

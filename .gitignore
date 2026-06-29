@@ -12,4 +12,9 @@ wheels/
 .chromadb_test
 sessions
 logs
-.agent
+.agents
+.plan
+.chromadb
+reports
+AGENTS.md
+skills-lock.json

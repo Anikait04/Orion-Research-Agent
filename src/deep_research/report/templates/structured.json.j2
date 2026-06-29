@@ -1,0 +1,25 @@
+{
+  "query": "{{ query }}",
+  "executive_summary": "{{ executive_summary }}",
+  "findings": [
+{% for finding in findings %}
+    {
+      "topic": "{{ finding.topic }}",
+      "claim": "{{ finding.claim }}",
+      "evidence": "{{ finding.evidence }}",
+      "confidence": {{ finding.confidence }},
+      "citations": [
+{% for citation in finding.citations %}
+        {
+          "title": "{{ citation.title }}",
+          "source_url": "{{ citation.source_url }}"
+        }{% if not loop.last %},{% endif %}
+{% endfor %}
+      ]
+    }{% if not loop.last %},{% endif %}
+{% endfor %}
+  ],
+  "conclusion": "{{ conclusion }}",
+  "methodology": "{{ methodology }}",
+  "generated_at": "{{ generated_at }}"
+}
