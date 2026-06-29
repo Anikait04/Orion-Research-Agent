@@ -5,6 +5,7 @@ from .pdf_extractor import pdf_extractor_tool
 from .crawl_links import crawl_links_tool
 from .citations import format_citations_tool
 from .verify_source import verify_source_tool
+from .memory_tools import store_finding_tool, search_memory_tool
 
 __all__ = [
     "web_search_tool",
@@ -14,6 +15,8 @@ __all__ = [
     "crawl_links_tool",
     "format_citations_tool",
     "verify_source_tool",
+    "store_finding_tool",
+    "search_memory_tool",
 ]
 
 ALL_TOOLS = [
@@ -24,4 +27,6 @@ ALL_TOOLS = [
     crawl_links_tool,
     format_citations_tool,
     verify_source_tool,
+    store_finding_tool,
+    search_memory_tool,
 ]
