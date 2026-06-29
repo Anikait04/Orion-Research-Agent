@@ -4,8 +4,8 @@ from autogen_agentchat.base import TaskResult
 from autogen_ext.models.ollama import OllamaChatCompletionClient
 from autogen_core.models import ModelInfo
 from .logs import logger
-from .config import LLM_CONFIG, RESEARCH_DEFAULTS
-from .models import ResearchQuery, ResearchPlan, Finding, Citation, ResearchReport, ProgressLedger
+from .config import LLM_CONFIG, DEPTH_CONFIG
+from .models import ResearchQuery, ResearchReport
 from .agents import (
     create_search_specialist,
     create_deep_extractor,
@@ -15,13 +15,16 @@ from .agents import (
     create_memory_manager,
 )
 from .memory import ResearchMemoryStore, ResearchSession, save_session
+from .report.generator import ReportGenerator
 
 
 class ResearchEngine:
-    logger.info("Inside ResearchEngine")
-    def __init__(self, depth: int | None = None):
-        self._depth = depth or RESEARCH_DEFAULTS["depth"]
-        self._max_iterations = RESEARCH_DEFAULTS["max_iterations"]
+    def __init__(self, depth: int = 3):
+        self._depth = depth
+        depth_cfg = DEPTH_CONFIG[depth]
+        self._max_iterations = depth_cfg["max_iterations"]
+        self._crawl_depth = depth_cfg["crawl_depth"]
+        self._max_pages = depth_cfg["max_pages"]
         self._model_client = OllamaChatCompletionClient(
             model=LLM_CONFIG["model"],
             host=LLM_CONFIG["base_url"],
@@ -34,9 +37,11 @@ class ResearchEngine:
             ),
         )
         self.memory = ResearchMemoryStore()
+        self.report_generator = ReportGenerator()
+        logger.info("ResearchEngine initialized with depth=%d", depth)
 
     def _create_team(self, query: str) -> SelectorGroupChat:
-        logger.info("Teams created...")
+        logger.info("Creating research team")
         search_specialist = create_search_specialist(self._model_client)
         deep_extractor = create_deep_extractor(self._model_client)
         research_analyst = create_research_analyst(self._model_client)
@@ -44,7 +49,9 @@ class ResearchEngine:
         memory_manager = create_memory_manager(self._model_client)
         orchestrator = create_orchestrator(self._model_client)
 
-        termination = TextMentionTermination("TERMINATE") | MaxMessageTermination(max_messages=20)
+        termination = TextMentionTermination("TERMINATE") | MaxMessageTermination(
+            max_messages=self._max_iterations
+        )
 
         return SelectorGroupChat(
             participants=[
@@ -61,15 +68,22 @@ class ResearchEngine:
         )
 
     async def run(self, query: str, output_format: str = "markdown") -> ResearchReport:
-        logger.info("Inside agents run")
-        research_query = ResearchQuery(query=query, depth=self._depth, output_format=output_format)
+        logger.info("Starting research run")
+        research_query = ResearchQuery(
+            query=query, depth=self._depth, output_format=output_format
+        )
+
+        existing_findings = await self.memory.search_all(query)
+        if existing_findings:
+            logger.info("Found %d existing findings in memory", len(existing_findings))
+
         team = self._create_team(query)
         try:
-            logger.info("gathering data ")
+            logger.info("Gathering data")
             result: TaskResult = await team.run(task=query)
-            logger.info("gathering data done")
+            logger.info("Data gathering complete")
             report_text = self._extract_report(result.messages)
-            logger.info("generated report")
+            logger.info("Report extracted")
         except Exception as e:
             return ResearchReport(
                 query=research_query,
@@ -80,7 +94,18 @@ class ResearchEngine:
             query=research_query,
             executive_summary=report_text,
         )
-        logger.info("report done")
+
+        for finding in report.findings:
+            await self.memory.store_finding(finding)
+        logger.info("Stored %d findings in memory", len(report.findings))
+
+        if output_format == "json":
+            output = report.model_dump_json(indent=2)
+        else:
+            output = self.report_generator.generate(report, fmt="markdown")
+
+        saved_path = self.report_generator.save(output)
+        logger.info("Report saved to %s", saved_path)
 
         session = ResearchSession(
             query=query,
@@ -89,7 +114,7 @@ class ResearchEngine:
             status="completed",
         )
         save_session(session)
-        logger.info("session saved")
+        logger.info("Session saved")
         return report
 
     @staticmethod

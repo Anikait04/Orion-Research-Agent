@@ -8,7 +8,7 @@ from .models import ResearchQuery
 @dataclass
 class CLIArgs:
     query: ResearchQuery
-    output_path: str = ""
+    output_path: str = f"/reports"
     session_id: str = ""
 
 
