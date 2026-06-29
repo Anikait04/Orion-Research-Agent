@@ -1,0 +1,23 @@
+[project]
+name = "testing-gang"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "aiofiles>=23.2.0",
+    "agentscope>=2.0.2",
+    "arxiv>=2.1.0",
+    "autogen-agentchat>=0.6.0",
+    "autogen-ext[chromadb,ollama]>=0.6.0",
+    "beautifulsoup4>=4.12.0",
+    "duckduckgo-search>=8.1.1",
+    "httpx>=0.27.0",
+    "jinja2>=3.1.0",
+    "markdown>=3.5.0",
+    "ollama>=0.6.2",
+    "pypiwin32>=223",
+    "python-dotenv>=1.2.2",
+    "autogenstudio>=0.1.5",
+    "pdfplumber>=0.11.10",
+]
